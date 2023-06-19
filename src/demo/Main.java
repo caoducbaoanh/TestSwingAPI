@@ -2,12 +2,14 @@ package demo;
 
 import java.awt.EventQueue;
 import java.util.List;
+import java.util.Vector;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 import api.APIClient;
 import api.UserAPI;
@@ -24,7 +26,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.swing.JToggleButton;
+import javax.swing.RowFilter;
 
 public class Main extends JFrame {
 
@@ -32,6 +41,11 @@ public class Main extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	private static final String username="root";
+    private static final String password="root";
+    private static final String dataConn="jdbc:mysql://localhost:3306/mid_term";
+	
 	private JPanel contentPane;
 	private JTable tableUser;
 	private JTextField textFieldDate;
@@ -43,6 +57,12 @@ public class Main extends JFrame {
 	private JTextField textFieldAmountToPay;
 	private JTextField textFieldCitizenName;
 	private JTextField textFieldTypeOfHouse;
+	
+	Connection sqlConn=null;
+    PreparedStatement pst=null;
+    ResultSet rs=null;
+    
+    int q,i,id,deteleItem;
 
 	/**
 	 * Launch the application.
@@ -74,7 +94,7 @@ public class Main extends JFrame {
 		contentPane.setLayout(null);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(25, 35, 626, 185);
+		scrollPane.setBounds(25, 65, 626, 155);
 		contentPane.add(scrollPane);
 		
 		tableUser = new JTable();
@@ -116,7 +136,7 @@ public class Main extends JFrame {
 		scrollPane.setColumnHeaderView(tableUser);
 		
 		JPanel panel = new JPanel();
-		panel.setBounds(25, 240, 626, 278);
+		panel.setBounds(25, 230, 626, 329);
 		contentPane.add(panel);
 		panel.setLayout(null);
 		
@@ -146,125 +166,6 @@ public class Main extends JFrame {
 		textFieldPhoneNumber.setColumns(10);
 		textFieldPhoneNumber.setBounds(133, 199, 255, 19);
 		panel.add(textFieldPhoneNumber);
-		
-		JButton btnCreate = new JButton("Create");
-		btnCreate.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					User user = new User();
-					user.setId(textFieldID.getText());
-					user.setAmountToPay(textFieldAmountToPay.getText());
-					user.setCitizenName(textFieldCitizenName.getText());
-					user.setDateOfPayment(textFieldDate.getText());
-					user.setFee(Double.parseDouble(textFieldFee.getText()));
-					user.setIdentityID(textFieldIdentityID.getText());
-					user.setPassword(textFieldPassword.getText());
-					user.setPhoneNumber(textFieldPhoneNumber.getText());
-					user.setTypeOfHouse(textFieldTypeOfHouse.getText());
-					
-					
-					UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
-					userAPI.create(user).enqueue(new Callback<Void>() {
-						
-						@Override
-						public void onResponse(Call<Void> call, Response<Void> response) {
-							if(response.isSuccessful()) {
-								loadData();
-							}
-							
-						}
-
-						@Override
-						public void onFailure(Call<Void> call, Throwable t) {
-							JOptionPane.showMessageDialog(null, t.getMessage());
-							
-						}
-
-						
-						
-					});
-					
-					
-				} catch (Exception e2) {
-					JOptionPane.showMessageDialog(null, e2.getMessage());
-				}
-				
-				
-				
-			}
-		});
-		btnCreate.setBounds(78, 257, 85, 21);
-		panel.add(btnCreate);
-		
-		JButton btnUpdate = new JButton("Update");
-		btnUpdate.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-				User user = new User();
-				user.setId(textFieldID.getText());
-				user.setAmountToPay(textFieldAmountToPay.getText());
-				user.setCitizenName(textFieldCitizenName.getText());
-				user.setDateOfPayment(textFieldDate.getText());
-				user.setFee(Double.parseDouble(textFieldFee.getText()));
-				user.setIdentityID(textFieldIdentityID.getText());
-				user.setPassword(textFieldPassword.getText());
-				user.setPhoneNumber(textFieldPhoneNumber.getText());
-				user.setTypeOfHouse(textFieldTypeOfHouse.getText());
-				
-				UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
-				userAPI.update(user).enqueue(new Callback<Void>() {
-					
-					@Override
-					public void onResponse(Call<Void> call, Response<Void> response) {
-						if (response.isSuccessful()) {
-							loadData();
-						}
-						
-					}
-
-					@Override
-					public void onFailure(Call<Void> call, Throwable t) {
-						JOptionPane.showMessageDialog(null, t.getMessage());
-						
-					}
-
-					
-				});
-				
-			}
-		});
-		btnUpdate.setBounds(187, 257, 85, 21);
-		panel.add(btnUpdate);
-		
-		JButton btnDelete = new JButton("Delete");
-		btnDelete.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				int result = JOptionPane.showConfirmDialog(null, "Confirm","Are you sure", JOptionPane.YES_NO_OPTION);
-				if(result==JOptionPane.YES_OPTION) {
-					UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
-					userAPI.delete(textFieldID.getText()).enqueue(new Callback<Void>() {
-						
-						@Override
-						public void onResponse(Call<Void> call, Response<Void> response) {
-							if(response.isSuccessful()) {
-								loadData();
-							}
-							
-						}
-						
-						@Override
-						public void onFailure(Call<Void> call, Throwable t) {
-							JOptionPane.showMessageDialog(null, t.getMessage());
-							
-						}
-
-						
-					});
-				}
-			}
-		});
-		btnDelete.setBounds(292, 257, 85, 21);
-		panel.add(btnDelete);
 		
 		textFieldFee = new JTextField();
 		textFieldFee.setColumns(10);
@@ -319,6 +220,234 @@ public class Main extends JFrame {
 		JLabel lblTypeOfHouse = new JLabel("Type Of House");
 		lblTypeOfHouse.setBounds(55, 228, 68, 19);
 		panel.add(lblTypeOfHouse);
+		
+		JButton btnUpdate = new JButton("Update");
+		btnUpdate.setBounds(166, 280, 85, 21);
+		panel.add(btnUpdate);
+		
+		JButton btnCancel = new JButton("Cancel");
+		btnCancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFrame frame; 
+        		frame = new JFrame("Exit");
+        		if(JOptionPane.showConfirmDialog(frame, "Do you want to exit ?","MYSQL Connector", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION) {
+        			System.exit(0);
+        		}
+			}
+		});
+		btnCancel.setBounds(278, 280, 85, 21);
+		panel.add(btnCancel);
+		btnUpdate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				User user = new User();
+				user.setId(textFieldID.getText());
+				user.setAmountToPay(textFieldAmountToPay.getText());
+				user.setCitizenName(textFieldCitizenName.getText());
+				user.setDateOfPayment(textFieldDate.getText());
+				user.setFee(Double.parseDouble(textFieldFee.getText()));
+				user.setIdentityID(textFieldIdentityID.getText());
+				user.setPassword(textFieldPassword.getText());
+				user.setPhoneNumber(textFieldPhoneNumber.getText());
+				user.setTypeOfHouse(textFieldTypeOfHouse.getText());
+				
+				UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
+				userAPI.update(user).enqueue(new Callback<Void>() {
+					
+					@Override
+					public void onResponse(Call<Void> call, Response<Void> response) {
+						if (response.isSuccessful()) {
+							loadData();
+						}
+						
+					}
+
+					@Override
+					public void onFailure(Call<Void> call, Throwable t) {
+						JOptionPane.showMessageDialog(null, t.getMessage());
+						
+					}
+
+					
+				});
+				
+			}
+		});
+		
+		JButton btnCreate = new JButton("Create");
+		btnCreate.setBounds(108, 23, 85, 21);
+		contentPane.add(btnCreate);
+		
+		JButton btnDelete = new JButton("Delete");
+		btnDelete.setBounds(322, 23, 85, 21);
+		contentPane.add(btnDelete);
+		
+		JButton btnSearch = new JButton("Search");
+		btnSearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String var=	JOptionPane.showInputDialog("Enter person name to search for: ");
+	    		if(var==null) {
+	    			JOptionPane.showMessageDialog(null, "Please input the person name");
+	    		}
+	    		else {
+	    			DefaultTableModel defaultTableModel=(DefaultTableModel)tableUser.getModel();
+	        		TableRowSorter<DefaultTableModel> obj=new TableRowSorter<>(defaultTableModel);
+	        		tableUser.setRowSorter(obj);
+	        		obj.setRowFilter(RowFilter.regexFilter(var.toString()));
+	        		}
+			}
+		});
+		btnSearch.setBounds(219, 23, 85, 21);
+		contentPane.add(btnSearch);
+		
+		JToggleButton tglbtnSort = new JToggleButton("Sort");
+		tglbtnSort.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (tglbtnSort.isSelected()) {
+    	            // Toggle button is selected
+    				 try {
+     					Class.forName("com.mysql.cj.jdbc.Driver");
+     					sqlConn=DriverManager.getConnection(dataConn,username,password);
+     					pst=sqlConn.prepareStatement("select * from thue ORDER BY citizen_name ASC");
+     					
+     					rs=pst.executeQuery();
+     					java.sql.ResultSetMetaData stData=rs.getMetaData();
+     					
+     					q=stData.getColumnCount();
+     					DefaultTableModel RecordTable=(DefaultTableModel)tableUser.getModel();
+     					RecordTable.setRowCount(0);
+     					
+     					
+     					while(rs.next()) {
+     						Vector ColumnData=new Vector();
+     						for (int i = 1; i < q; i++) {
+     							ColumnData.add(rs.getString("id"));
+     							ColumnData.add(rs.getString("amount_to_pay"));	
+     							ColumnData.add(rs.getString("citizen_name"));
+     							ColumnData.add(rs.getString("date_of_payment"));
+     							ColumnData.add(rs.getString("fee"));
+     							ColumnData.add(rs.getString("identityid"));
+     							ColumnData.add(rs.getString("password"));
+     							ColumnData.add(rs.getString("phone_number"));
+     							ColumnData.add(rs.getString("type_of_house"));
+     						}
+     						RecordTable.addRow(ColumnData);
+     					}
+     					
+     				} catch (Exception ex) {
+     					// TODO: handle exception
+     					JOptionPane.showMessageDialog(null, ex);
+     				}
+    	        } else {
+    	            // Toggle button is deselected
+    	        	 try {
+     					Class.forName("com.mysql.cj.jdbc.Driver");
+     					sqlConn=DriverManager.getConnection(dataConn,username,password);
+     					pst=sqlConn.prepareStatement("select * from thue ORDER BY citizen_name DESC");
+     					
+     					rs=pst.executeQuery();
+     					java.sql.ResultSetMetaData stData=rs.getMetaData();
+     					
+     					q=stData.getColumnCount();
+     					DefaultTableModel RecordTable=(DefaultTableModel)tableUser.getModel();
+     					RecordTable.setRowCount(0);
+     					
+     					
+     					while(rs.next()) {
+     						Vector ColumnData=new Vector();
+     						for (int i = 1; i < q; i++) {
+     							ColumnData.add(rs.getString("id"));
+     							ColumnData.add(rs.getString("amount_to_pay"));	
+     							ColumnData.add(rs.getString("citizen_name"));
+     							ColumnData.add(rs.getString("date_of_payment"));
+     							ColumnData.add(rs.getString("fee"));
+     							ColumnData.add(rs.getString("identityid"));
+     							ColumnData.add(rs.getString("password"));
+     							ColumnData.add(rs.getString("phone_number"));
+     							ColumnData.add(rs.getString("type_of_house"));
+     						}
+     						RecordTable.addRow(ColumnData);
+     					}
+     					
+     				} catch (Exception ex) {
+     					JOptionPane.showMessageDialog(null, ex);
+     				}
+    	        }
+			}
+		});
+		tglbtnSort.setBounds(430, 23, 85, 21);
+		contentPane.add(tglbtnSort);
+		btnDelete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int result = JOptionPane.showConfirmDialog(null, "Confirm","Are you sure", JOptionPane.YES_NO_OPTION);
+				if(result==JOptionPane.YES_OPTION) {
+					UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
+					userAPI.delete(textFieldID.getText()).enqueue(new Callback<Void>() {
+						
+						@Override
+						public void onResponse(Call<Void> call, Response<Void> response) {
+							if(response.isSuccessful()) {
+								loadData();
+							}
+							
+						}
+						
+						@Override
+						public void onFailure(Call<Void> call, Throwable t) {
+							JOptionPane.showMessageDialog(null, t.getMessage());
+							
+						}
+
+						
+					});
+				}
+			}
+		});
+		btnCreate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					User user = new User();
+					user.setId(textFieldID.getText());
+					user.setAmountToPay(textFieldAmountToPay.getText());
+					user.setCitizenName(textFieldCitizenName.getText());
+					user.setDateOfPayment(textFieldDate.getText());
+					user.setFee(Double.parseDouble(textFieldFee.getText()));
+					user.setIdentityID(textFieldIdentityID.getText());
+					user.setPassword(textFieldPassword.getText());
+					user.setPhoneNumber(textFieldPhoneNumber.getText());
+					user.setTypeOfHouse(textFieldTypeOfHouse.getText());
+					
+					
+					UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
+					userAPI.create(user).enqueue(new Callback<Void>() {
+						
+						@Override
+						public void onResponse(Call<Void> call, Response<Void> response) {
+							if(response.isSuccessful()) {
+								loadData();
+							}
+							
+						}
+
+						@Override
+						public void onFailure(Call<Void> call, Throwable t) {
+							JOptionPane.showMessageDialog(null, t.getMessage());
+							
+						}
+
+						
+						
+					});
+					
+					
+				} catch (Exception e2) {
+					JOptionPane.showMessageDialog(null, e2.getMessage());
+				}
+				
+				
+				
+			}
+		});
 		
 	}
 	
