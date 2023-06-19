@@ -10,8 +10,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import api.APIClient;
-import api.ProductAPI;
-import entities.Product;
+import api.UserAPI;
+import entities.User;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,6 +24,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Date;
 
 public class Main extends JFrame {
 
@@ -32,11 +33,16 @@ public class Main extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	private JTable tableProduct;
+	private JTable tableUser;
+	private JTextField textFieldDate;
+	private JTextField textFieldIdentityID;
+	private JTextField textFieldPhoneNumber;
+	private JTextField textFieldFee;
+	private JTextField textFieldPassword;
 	private JTextField textFieldID;
-	private JTextField textFieldName;
-	private JTextField textFieldPrice;
-	private JTextField textFieldDecription;
+	private JTextField textFieldAmountToPay;
+	private JTextField textFieldCitizenName;
+	private JTextField textFieldTypeOfHouse;
 
 	/**
 	 * Launch the application.
@@ -71,29 +77,34 @@ public class Main extends JFrame {
 		scrollPane.setBounds(25, 35, 626, 185);
 		contentPane.add(scrollPane);
 		
-		tableProduct = new JTable();
-		tableProduct.addMouseListener(new MouseAdapter() {
+		tableUser = new JTable();
+		tableUser.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				int selectedRow =tableProduct.getSelectedRow();
-				String id=tableProduct.getValueAt(selectedRow, 0).toString();
-				ProductAPI productAPI =APIClient.getClient().create(ProductAPI.class);
-				productAPI.find(id).enqueue(new Callback<Product>() {
+				int selectedRow =tableUser.getSelectedRow();
+				String id=tableUser.getValueAt(selectedRow, 0).toString();
+				UserAPI userAPI =APIClient.getClient().create(UserAPI.class);
+				userAPI.find(id).enqueue(new Callback<User>() {
 					
 					@Override
-					public void onResponse(Call<Product> call, Response<Product> response) {
+					public void onResponse(Call<User> call, Response<User> response) {
 						if(response.isSuccessful()) {
-							Product product =response.body();
-							textFieldID.setText(product.getId());
-							textFieldName.setText(product.getName());
-							textFieldPrice.setText(String.valueOf(product.getPrice()));
-							textFieldDecription.setText(product.getDecription());
+							User user =response.body();
+							textFieldID.setText(user.getId());
+							textFieldAmountToPay.setText(user.getAmountToPay());
+							textFieldCitizenName.setText(user.getCitizenName());
+							textFieldDate.setText(user.getDateOfPayment());
+							textFieldFee.setText(String.valueOf(user.getFee()));
+							textFieldIdentityID.setText(user.getIdentityID());
+							textFieldPassword.setText(user.getPassword());
+							textFieldPhoneNumber.setText(user.getPhoneNumber());
+							textFieldTypeOfHouse.setText(user.getTypeOfHouse());
 						}
 						
 					}
 
 					@Override
-					public void onFailure(Call<Product> call, Throwable t) {
+					public void onFailure(Call<User> call, Throwable t) {
 						JOptionPane.showConfirmDialog(null, t.getMessage());
 						
 					}
@@ -102,61 +113,58 @@ public class Main extends JFrame {
 				});
 			}
 		});
-		scrollPane.setColumnHeaderView(tableProduct);
+		scrollPane.setColumnHeaderView(tableUser);
 		
 		JPanel panel = new JPanel();
-		panel.setBounds(25, 239, 626, 278);
+		panel.setBounds(25, 240, 626, 278);
 		contentPane.add(panel);
 		panel.setLayout(null);
 		
-		textFieldID = new JTextField();
-		textFieldID.setBounds(133, 44, 255, 19);
-		panel.add(textFieldID);
-		textFieldID.setColumns(10);
-		
-		JLabel lblID = new JLabel("ID");
-		lblID.setBounds(55, 44, 68, 19);
-		panel.add(lblID);
-		
-		JLabel lblName = new JLabel("Name");
+		JLabel lblName = new JLabel("Date Of Payment");
 		lblName.setBounds(55, 96, 68, 19);
 		panel.add(lblName);
 		
-		textFieldName = new JTextField();
-		textFieldName.setColumns(10);
-		textFieldName.setBounds(133, 96, 255, 19);
-		panel.add(textFieldName);
+		textFieldDate = new JTextField();
+		textFieldDate.setColumns(10);
+		textFieldDate.setBounds(133, 96, 255, 19);
+		panel.add(textFieldDate);
 		
-		JLabel lblPrice = new JLabel("Price");
+		JLabel lblPrice = new JLabel("Identity ID");
 		lblPrice.setBounds(55, 147, 68, 19);
 		panel.add(lblPrice);
 		
-		textFieldPrice = new JTextField();
-		textFieldPrice.setColumns(10);
-		textFieldPrice.setBounds(133, 147, 255, 19);
-		panel.add(textFieldPrice);
+		textFieldIdentityID = new JTextField();
+		textFieldIdentityID.setColumns(10);
+		textFieldIdentityID.setBounds(133, 147, 255, 19);
+		panel.add(textFieldIdentityID);
 		
-		JLabel lblDecription = new JLabel("Decription");
-		lblDecription.setBounds(55, 191, 68, 19);
+		JLabel lblDecription = new JLabel("Phone Number");
+		lblDecription.setBounds(55, 199, 68, 19);
 		panel.add(lblDecription);
 		
-		textFieldDecription = new JTextField();
-		textFieldDecription.setColumns(10);
-		textFieldDecription.setBounds(133, 191, 255, 19);
-		panel.add(textFieldDecription);
+		textFieldPhoneNumber = new JTextField();
+		textFieldPhoneNumber.setColumns(10);
+		textFieldPhoneNumber.setBounds(133, 199, 255, 19);
+		panel.add(textFieldPhoneNumber);
 		
 		JButton btnCreate = new JButton("Create");
 		btnCreate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					Product product = new Product();
-					product.setId(textFieldID.getText());
-					product.setName(textFieldName.getText());
-					product.setPrice(Double.parseDouble(textFieldPrice.getText()));
-					product.setDecription(textFieldDecription.getText());
+					User user = new User();
+					user.setId(textFieldID.getText());
+					user.setAmountToPay(textFieldAmountToPay.getText());
+					user.setCitizenName(textFieldCitizenName.getText());
+					user.setDateOfPayment(textFieldDate.getText());
+					user.setFee(Double.parseDouble(textFieldFee.getText()));
+					user.setIdentityID(textFieldIdentityID.getText());
+					user.setPassword(textFieldPassword.getText());
+					user.setPhoneNumber(textFieldPhoneNumber.getText());
+					user.setTypeOfHouse(textFieldTypeOfHouse.getText());
 					
-					ProductAPI productAPI = APIClient.getClient().create(ProductAPI.class);
-					productAPI.create(product).enqueue(new Callback<Void>() {
+					
+					UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
+					userAPI.create(user).enqueue(new Callback<Void>() {
 						
 						@Override
 						public void onResponse(Call<Void> call, Response<Void> response) {
@@ -185,21 +193,26 @@ public class Main extends JFrame {
 				
 			}
 		});
-		btnCreate.setBounds(78, 236, 85, 21);
+		btnCreate.setBounds(78, 257, 85, 21);
 		panel.add(btnCreate);
 		
 		JButton btnUpdate = new JButton("Update");
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
-				Product product = new Product();
-				product.setId(textFieldID.getText());
-				product.setName(textFieldName.getText());
-				product.setPrice(Double.parseDouble(textFieldPrice.getText()));
-				product.setDecription(textFieldDecription.getText());
+				User user = new User();
+				user.setId(textFieldID.getText());
+				user.setAmountToPay(textFieldAmountToPay.getText());
+				user.setCitizenName(textFieldCitizenName.getText());
+				user.setDateOfPayment(textFieldDate.getText());
+				user.setFee(Double.parseDouble(textFieldFee.getText()));
+				user.setIdentityID(textFieldIdentityID.getText());
+				user.setPassword(textFieldPassword.getText());
+				user.setPhoneNumber(textFieldPhoneNumber.getText());
+				user.setTypeOfHouse(textFieldTypeOfHouse.getText());
 				
-				ProductAPI productAPI = APIClient.getClient().create(ProductAPI.class);
-				productAPI.update(product).enqueue(new Callback<Void>() {
+				UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
+				userAPI.update(user).enqueue(new Callback<Void>() {
 					
 					@Override
 					public void onResponse(Call<Void> call, Response<Void> response) {
@@ -220,7 +233,7 @@ public class Main extends JFrame {
 				
 			}
 		});
-		btnUpdate.setBounds(187, 236, 85, 21);
+		btnUpdate.setBounds(187, 257, 85, 21);
 		panel.add(btnUpdate);
 		
 		JButton btnDelete = new JButton("Delete");
@@ -228,8 +241,8 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				int result = JOptionPane.showConfirmDialog(null, "Confirm","Are you sure", JOptionPane.YES_NO_OPTION);
 				if(result==JOptionPane.YES_OPTION) {
-					ProductAPI productAPI = APIClient.getClient().create(ProductAPI.class);
-					productAPI.delete(textFieldID.getText()).enqueue(new Callback<Void>() {
+					UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
+					userAPI.delete(textFieldID.getText()).enqueue(new Callback<Void>() {
 						
 						@Override
 						public void onResponse(Call<Void> call, Response<Void> response) {
@@ -250,44 +263,108 @@ public class Main extends JFrame {
 				}
 			}
 		});
-		btnDelete.setBounds(292, 236, 85, 21);
+		btnDelete.setBounds(292, 257, 85, 21);
 		panel.add(btnDelete);
+		
+		textFieldFee = new JTextField();
+		textFieldFee.setColumns(10);
+		textFieldFee.setBounds(133, 118, 255, 19);
+		panel.add(textFieldFee);
+		
+		JLabel lblFee = new JLabel("Fee");
+		lblFee.setBounds(55, 118, 68, 19);
+		panel.add(lblFee);
+		
+		textFieldPassword = new JTextField();
+		textFieldPassword.setColumns(10);
+		textFieldPassword.setBounds(133, 176, 255, 19);
+		panel.add(textFieldPassword);
+		
+		JLabel lblPassword = new JLabel("Password");
+		lblPassword.setBounds(55, 176, 68, 19);
+		panel.add(lblPassword);
+		
+		textFieldID = new JTextField();
+		textFieldID.setColumns(10);
+		textFieldID.setBounds(133, 15, 255, 19);
+		panel.add(textFieldID);
+		
+		JLabel lblID = new JLabel("ID");
+		lblID.setBounds(55, 15, 68, 19);
+		panel.add(lblID);
+		
+		textFieldAmountToPay = new JTextField();
+		textFieldAmountToPay.setColumns(10);
+		textFieldAmountToPay.setBounds(133, 38, 255, 19);
+		panel.add(textFieldAmountToPay);
+		
+		JLabel lblAmoutToPay = new JLabel("Amout To Pay");
+		lblAmoutToPay.setBounds(55, 38, 68, 19);
+		panel.add(lblAmoutToPay);
+		
+		textFieldCitizenName = new JTextField();
+		textFieldCitizenName.setColumns(10);
+		textFieldCitizenName.setBounds(133, 67, 255, 19);
+		panel.add(textFieldCitizenName);
+		
+		JLabel lblCitizenName = new JLabel("Citizen Name");
+		lblCitizenName.setBounds(55, 67, 68, 19);
+		panel.add(lblCitizenName);
+		
+		textFieldTypeOfHouse = new JTextField();
+		textFieldTypeOfHouse.setColumns(10);
+		textFieldTypeOfHouse.setBounds(133, 228, 255, 19);
+		panel.add(textFieldTypeOfHouse);
+		
+		JLabel lblTypeOfHouse = new JLabel("Type Of House");
+		lblTypeOfHouse.setBounds(55, 228, 68, 19);
+		panel.add(lblTypeOfHouse);
 		
 	}
 	
 	
 	private void loadData() {
 		try {
-			ProductAPI productAPI = APIClient.getClient().create(ProductAPI.class);
-			productAPI.findAll().enqueue(new Callback<List<Product>>() {
+			UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
+			userAPI.findAll().enqueue(new Callback<List<User>>() {
 				
 				@Override
-				public void onResponse(Call<List<Product>> call, Response<List<Product>> response) {
+				public void onResponse(Call<List<User>> call, Response<List<User>> response) {
 					if(response.isSuccessful()) {
 			                // Display the data in the JTable
 							DefaultTableModel defaultTableModel = new DefaultTableModel();
 							defaultTableModel.addColumn("id");
-							defaultTableModel.addColumn("decription");
-							defaultTableModel.addColumn("name");
-							defaultTableModel.addColumn("price");
+							defaultTableModel.addColumn("amountToPay");
+							defaultTableModel.addColumn("citizenName");
+							defaultTableModel.addColumn("dateOfPayment");
+							defaultTableModel.addColumn("fee");
+							defaultTableModel.addColumn("identityID");
+							defaultTableModel.addColumn("password");
+							defaultTableModel.addColumn("phoneNumber");
+							defaultTableModel.addColumn("typeOfHouse");
 							
-							for(Product product : response.body()) {
+							for(User user : response.body()) {
 								defaultTableModel.addRow(new Object[] {
-										product.getId()
-										,product.getDecription()
-										,product.getName()
-										,product.getPrice()
+										user.getId()
+										,user.getAmountToPay()
+										,user.getCitizenName()
+										,user.getDateOfPayment()
+										,user.getFee()
+										,user.getIdentityID()
+										,user.getPassword()
+										,user.getPhoneNumber()
+										,user.getTypeOfHouse()
 										
 								});
 							}
-							tableProduct.setModel(defaultTableModel);
+							tableUser.setModel(defaultTableModel);
 			          
 					}
 					
 				}
 				
 				@Override
-				public void onFailure(Call<List<Product>> call, Throwable t) {
+				public void onFailure(Call<List<User>> call, Throwable t) {
 					JOptionPane.showConfirmDialog(null, t.getMessage());
 					
 				}
