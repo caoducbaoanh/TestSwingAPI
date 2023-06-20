@@ -1,6 +1,9 @@
 package demo;
 
 import java.awt.EventQueue;
+import java.awt.GridLayout;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
@@ -10,6 +13,8 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
+
+import com.toedter.calendar.JDateChooser;
 
 import api.APIClient;
 import api.UserAPI;
@@ -27,13 +32,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import javax.swing.JToggleButton;
 import javax.swing.RowFilter;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
 
 public class Main extends JFrame {
 
@@ -48,21 +58,22 @@ public class Main extends JFrame {
 	
 	private JPanel contentPane;
 	private JTable tableUser;
-	private JTextField textFieldDate;
+	//private JComboBox comboBoxTypeOfHouse;
+	//private JDateChooser dateChooser;
 	private JTextField textFieldIdentityID;
-	private JTextField textFieldPhoneNumber;
 	private JTextField textFieldFee;
-	private JTextField textFieldPassword;
 	private JTextField textFieldID;
 	private JTextField textFieldAmountToPay;
-	private JTextField textFieldCitizenName;
-	private JTextField textFieldTypeOfHouse;
 	
 	Connection sqlConn=null;
     PreparedStatement pst=null;
     ResultSet rs=null;
     
+   
+    
     int q,i,id,deteleItem;
+    private JTextField textFieldCitizenName;
+    private JTextField textFieldPhoneNumber;
 
 	/**
 	 * Launch the application.
@@ -90,12 +101,40 @@ public class Main extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
 		setContentPane(contentPane);
-		loadData();
+		
 		contentPane.setLayout(null);
 		
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(25, 65, 626, 155);
 		contentPane.add(scrollPane);
+		
+		JPanel panel = new JPanel();
+		panel.setBounds(25, 230, 626, 329);
+		contentPane.add(panel);
+		panel.setLayout(null);
+		
+		JDateChooser dateChooser = new JDateChooser();
+		Calendar calendar = Calendar.getInstance();
+        calendar.set(2023,Calendar.JUNE,30); // Set the desired default date
+        Date defaultDate = calendar.getTime();
+        dateChooser.setDate(defaultDate);
+        
+    	dateChooser.setDateFormatString("yyyy-MM-dd");
+    	dateChooser.setBounds(133,102,255,19);
+    	dateChooser.getCalendarButton();
+    	
+    	panel.add(dateChooser);
+    	panel.setVisible(true);
+		
+		
+		JComboBox comboBoxTypeOfHouse = new JComboBox();
+		comboBoxTypeOfHouse.setModel(new DefaultComboBoxModel(new String[] {"Level 1", "Level 2", "Level 3", "Level 4"}));
+		comboBoxTypeOfHouse.setBounds(133, 135, 255, 21);
+		panel.add(comboBoxTypeOfHouse);
+    	
+		
+		loadData();
+		
 		
 		tableUser = new JTable();
 		tableUser.addMouseListener(new MouseAdapter() {
@@ -105,20 +144,37 @@ public class Main extends JFrame {
 				String id=tableUser.getValueAt(selectedRow, 0).toString();
 				UserAPI userAPI =APIClient.getClient().create(UserAPI.class);
 				userAPI.find(id).enqueue(new Callback<User>() {
-					
 					@Override
 					public void onResponse(Call<User> call, Response<User> response) {
 						if(response.isSuccessful()) {
 							User user =response.body();
 							textFieldID.setText(user.getId());
-							textFieldAmountToPay.setText(user.getAmountToPay());
-							textFieldCitizenName.setText(user.getCitizenName());
-							textFieldDate.setText(user.getDateOfPayment());
-							textFieldFee.setText(String.valueOf(user.getFee()));
 							textFieldIdentityID.setText(user.getIdentityID());
-							textFieldPassword.setText(user.getPassword());
-							textFieldPhoneNumber.setText(user.getPhoneNumber());
-							textFieldTypeOfHouse.setText(user.getTypeOfHouse());
+							/*String dateString= user.getDateOfPayment().toString();
+							
+							SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+
+					        // Create a SimpleDateFormat instance for desired output format
+					        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+					        
+					        
+					        try {
+					            // Parse the date string into a Date object
+					            Date date = inputFormat.parse(dateString);
+
+					            // Format the Date object into the desired output format
+					            String formattedDate = outputFormat.format(date);
+
+					            // Print the formatted date
+					            dateChooser.setDateFormatString(formattedDate);
+					        } catch (ParseException e) {
+					            e.printStackTrace();
+					        }
+							*/
+							dateChooser.setDateFormatString(user.getDateOfPayment());
+							comboBoxTypeOfHouse.setSelectedItem(user.getTypeOfHouse());
+							textFieldFee.setText(String.valueOf(user.getFee()));
+							textFieldAmountToPay.setText(user.getAmountToPay());
 						}
 						
 					}
@@ -135,55 +191,33 @@ public class Main extends JFrame {
 		});
 		scrollPane.setColumnHeaderView(tableUser);
 		
-		JPanel panel = new JPanel();
-		panel.setBounds(25, 230, 626, 329);
-		contentPane.add(panel);
-		panel.setLayout(null);
 		
-		JLabel lblName = new JLabel("Date Of Payment");
-		lblName.setBounds(55, 96, 68, 19);
-		panel.add(lblName);
 		
-		textFieldDate = new JTextField();
-		textFieldDate.setColumns(10);
-		textFieldDate.setBounds(133, 96, 255, 19);
-		panel.add(textFieldDate);
+		JLabel lblDateOfPayment = new JLabel("Date Of Payment");
+		lblDateOfPayment.setBounds(55, 102, 68, 19);
+		panel.add(lblDateOfPayment);
 		
-		JLabel lblPrice = new JLabel("Identity ID");
-		lblPrice.setBounds(55, 147, 68, 19);
-		panel.add(lblPrice);
+		
+    	
+    	
+		
+		JLabel lblIdentityID = new JLabel("Identity ID");
+		lblIdentityID.setBounds(55, 44, 68, 19);
+		panel.add(lblIdentityID);
 		
 		textFieldIdentityID = new JTextField();
 		textFieldIdentityID.setColumns(10);
-		textFieldIdentityID.setBounds(133, 147, 255, 19);
+		textFieldIdentityID.setBounds(133, 44, 255, 19);
 		panel.add(textFieldIdentityID);
-		
-		JLabel lblDecription = new JLabel("Phone Number");
-		lblDecription.setBounds(55, 199, 68, 19);
-		panel.add(lblDecription);
-		
-		textFieldPhoneNumber = new JTextField();
-		textFieldPhoneNumber.setColumns(10);
-		textFieldPhoneNumber.setBounds(133, 199, 255, 19);
-		panel.add(textFieldPhoneNumber);
 		
 		textFieldFee = new JTextField();
 		textFieldFee.setColumns(10);
-		textFieldFee.setBounds(133, 118, 255, 19);
+		textFieldFee.setBounds(133, 199, 255, 19);
 		panel.add(textFieldFee);
 		
 		JLabel lblFee = new JLabel("Fee");
-		lblFee.setBounds(55, 118, 68, 19);
+		lblFee.setBounds(55, 199, 68, 19);
 		panel.add(lblFee);
-		
-		textFieldPassword = new JTextField();
-		textFieldPassword.setColumns(10);
-		textFieldPassword.setBounds(133, 176, 255, 19);
-		panel.add(textFieldPassword);
-		
-		JLabel lblPassword = new JLabel("Password");
-		lblPassword.setBounds(55, 176, 68, 19);
-		panel.add(lblPassword);
 		
 		textFieldID = new JTextField();
 		textFieldID.setColumns(10);
@@ -196,29 +230,15 @@ public class Main extends JFrame {
 		
 		textFieldAmountToPay = new JTextField();
 		textFieldAmountToPay.setColumns(10);
-		textFieldAmountToPay.setBounds(133, 38, 255, 19);
+		textFieldAmountToPay.setBounds(133, 228, 255, 19);
 		panel.add(textFieldAmountToPay);
 		
-		JLabel lblAmoutToPay = new JLabel("Amout To Pay");
-		lblAmoutToPay.setBounds(55, 38, 68, 19);
-		panel.add(lblAmoutToPay);
-		
-		textFieldCitizenName = new JTextField();
-		textFieldCitizenName.setColumns(10);
-		textFieldCitizenName.setBounds(133, 67, 255, 19);
-		panel.add(textFieldCitizenName);
-		
-		JLabel lblCitizenName = new JLabel("Citizen Name");
-		lblCitizenName.setBounds(55, 67, 68, 19);
-		panel.add(lblCitizenName);
-		
-		textFieldTypeOfHouse = new JTextField();
-		textFieldTypeOfHouse.setColumns(10);
-		textFieldTypeOfHouse.setBounds(133, 228, 255, 19);
-		panel.add(textFieldTypeOfHouse);
+		JLabel lblAmountToPay = new JLabel("Amount To Pay");
+		lblAmountToPay.setBounds(55, 228, 68, 19);
+		panel.add(lblAmountToPay);
 		
 		JLabel lblTypeOfHouse = new JLabel("Type Of House");
-		lblTypeOfHouse.setBounds(55, 228, 68, 19);
+		lblTypeOfHouse.setBounds(55, 135, 68, 19);
 		panel.add(lblTypeOfHouse);
 		
 		JButton btnUpdate = new JButton("Update");
@@ -237,19 +257,37 @@ public class Main extends JFrame {
 		});
 		btnCancel.setBounds(278, 280, 85, 21);
 		panel.add(btnCancel);
+		
+		JLabel lblCitizenName = new JLabel("Citizen Name");
+		lblCitizenName.setBounds(55, 73, 68, 19);
+		panel.add(lblCitizenName);
+		
+		textFieldCitizenName = new JTextField();
+		textFieldCitizenName.setColumns(10);
+		textFieldCitizenName.setBounds(133, 73, 255, 19);
+		panel.add(textFieldCitizenName);
+		
+		JLabel lblPhoneNumber = new JLabel("Phone Number");
+		lblPhoneNumber.setBounds(55, 167, 68, 19);
+		panel.add(lblPhoneNumber);
+		
+		textFieldPhoneNumber = new JTextField();
+		textFieldPhoneNumber.setColumns(10);
+		textFieldPhoneNumber.setBounds(133, 167, 255, 19);
+		panel.add(textFieldPhoneNumber);
+		
+		
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
 				User user = new User();
 				user.setId(textFieldID.getText());
 				user.setAmountToPay(textFieldAmountToPay.getText());
-				user.setCitizenName(textFieldCitizenName.getText());
-				user.setDateOfPayment(textFieldDate.getText());
+				user.setTypeOfHouse(comboBoxTypeOfHouse.getSelectedItem());
 				user.setFee(Double.parseDouble(textFieldFee.getText()));
 				user.setIdentityID(textFieldIdentityID.getText());
-				user.setPassword(textFieldPassword.getText());
-				user.setPhoneNumber(textFieldPhoneNumber.getText());
-				user.setTypeOfHouse(textFieldTypeOfHouse.getText());
+				user.setDateOfPayment(dateChooser.getDateFormatString());
+				
 				
 				UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
 				userAPI.update(user).enqueue(new Callback<Void>() {
@@ -322,12 +360,11 @@ public class Main extends JFrame {
      						Vector ColumnData=new Vector();
      						for (int i = 1; i < q; i++) {
      							ColumnData.add(rs.getString("id"));
-     							ColumnData.add(rs.getString("amount_to_pay"));	
+     							ColumnData.add(rs.getString("identityid"));	
      							ColumnData.add(rs.getString("citizen_name"));
      							ColumnData.add(rs.getString("date_of_payment"));
+     							ColumnData.add(rs.getString("amount_to_pay"));
      							ColumnData.add(rs.getString("fee"));
-     							ColumnData.add(rs.getString("identityid"));
-     							ColumnData.add(rs.getString("password"));
      							ColumnData.add(rs.getString("phone_number"));
      							ColumnData.add(rs.getString("type_of_house"));
      						}
@@ -335,7 +372,6 @@ public class Main extends JFrame {
      					}
      					
      				} catch (Exception ex) {
-     					// TODO: handle exception
      					JOptionPane.showMessageDialog(null, ex);
      				}
     	        } else {
@@ -357,12 +393,11 @@ public class Main extends JFrame {
      						Vector ColumnData=new Vector();
      						for (int i = 1; i < q; i++) {
      							ColumnData.add(rs.getString("id"));
-     							ColumnData.add(rs.getString("amount_to_pay"));	
+     							ColumnData.add(rs.getString("identityid"));	
      							ColumnData.add(rs.getString("citizen_name"));
      							ColumnData.add(rs.getString("date_of_payment"));
+     							ColumnData.add(rs.getString("amount_to_pay"));
      							ColumnData.add(rs.getString("fee"));
-     							ColumnData.add(rs.getString("identityid"));
-     							ColumnData.add(rs.getString("password"));
      							ColumnData.add(rs.getString("phone_number"));
      							ColumnData.add(rs.getString("type_of_house"));
      						}
@@ -377,6 +412,9 @@ public class Main extends JFrame {
 		});
 		tglbtnSort.setBounds(430, 23, 85, 21);
 		contentPane.add(tglbtnSort);
+		
+		
+		
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int result = JOptionPane.showConfirmDialog(null, "Confirm","Are you sure", JOptionPane.YES_NO_OPTION);
@@ -408,14 +446,13 @@ public class Main extends JFrame {
 				try {
 					User user = new User();
 					user.setId(textFieldID.getText());
-					user.setAmountToPay(textFieldAmountToPay.getText());
 					user.setCitizenName(textFieldCitizenName.getText());
-					user.setDateOfPayment(textFieldDate.getText());
+					user.setAmountToPay(textFieldAmountToPay.getText());
+					user.setTypeOfHouse(comboBoxTypeOfHouse.getSelectedItem());
 					user.setFee(Double.parseDouble(textFieldFee.getText()));
 					user.setIdentityID(textFieldIdentityID.getText());
-					user.setPassword(textFieldPassword.getText());
+					user.setDateOfPayment(dateChooser.getDateFormatString());
 					user.setPhoneNumber(textFieldPhoneNumber.getText());
-					user.setTypeOfHouse(textFieldTypeOfHouse.getText());
 					
 					
 					UserAPI userAPI = APIClient.getClient().create(UserAPI.class);
@@ -463,24 +500,31 @@ public class Main extends JFrame {
 			                // Display the data in the JTable
 							DefaultTableModel defaultTableModel = new DefaultTableModel();
 							defaultTableModel.addColumn("id");
-							defaultTableModel.addColumn("amountToPay");
+							defaultTableModel.addColumn("identityID");
 							defaultTableModel.addColumn("citizenName");
 							defaultTableModel.addColumn("dateOfPayment");
+							defaultTableModel.addColumn("amountToPay");
+							
+							
 							defaultTableModel.addColumn("fee");
-							defaultTableModel.addColumn("identityID");
-							defaultTableModel.addColumn("password");
+							
+							
 							defaultTableModel.addColumn("phoneNumber");
 							defaultTableModel.addColumn("typeOfHouse");
 							
+						
+
+							
 							for(User user : response.body()) {
+								
 								defaultTableModel.addRow(new Object[] {
 										user.getId()
-										,user.getAmountToPay()
+										,user.getIdentityID()
 										,user.getCitizenName()
 										,user.getDateOfPayment()
+										,user.getAmountToPay()
 										,user.getFee()
-										,user.getIdentityID()
-										,user.getPassword()
+										
 										,user.getPhoneNumber()
 										,user.getTypeOfHouse()
 										
